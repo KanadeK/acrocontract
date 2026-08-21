@@ -1,3 +1,4 @@
+import json
 from dataclasses import replace
 from pathlib import Path
 
@@ -6,7 +7,13 @@ import pytest
 from acrocontract.diff import compare_contracts
 from acrocontract.inspect import inspect_pdf
 from acrocontract.migrate import MigrationError, migrate_values
-from acrocontract.plan import build_migration_plan, plan_from_json, plan_to_json
+from acrocontract.plan import (
+    FieldMapping,
+    PlanError,
+    build_migration_plan,
+    plan_from_json,
+    plan_to_json,
+)
 
 
 def example_plan(pdf_fixtures: Path):  # type: ignore[no-untyped-def]
@@ -53,3 +60,42 @@ def test_rejects_unmapped_unknown_and_invalid_values(
 
     with pytest.raises(MigrationError, match=message):
         migrate_values(values, plan)
+
+
+def test_rejects_invalid_plan_schema_fields(pdf_fixtures: Path) -> None:
+    payload = json.loads(plan_to_json(example_plan(pdf_fixtures)))
+
+    payload["schemaVersion"] = "unknown"
+    with pytest.raises(PlanError, match="schemaVersion"):
+        plan_from_json(json.dumps(payload))
+
+    payload["schemaVersion"] = "acrocontract.migration.v1"
+    payload["reviewed"] = "yes"
+    with pytest.raises(PlanError, match="reviewed"):
+        plan_from_json(json.dumps(payload))
+
+    payload["reviewed"] = True
+    payload["sourceFields"][0]["options"] = {}
+    with pytest.raises(PlanError, match="options"):
+        plan_from_json(json.dumps(payload))
+
+    with pytest.raises(PlanError, match="object"):
+        plan_from_json("[]")
+
+
+def test_rejects_ambiguous_or_unknown_plan_mappings(pdf_fixtures: Path) -> None:
+    plan = replace(example_plan(pdf_fixtures), reviewed=True)
+    first = plan.mappings[0]
+    collision = replace(
+        plan,
+        mappings=plan.mappings + (FieldMapping("terms", first.target, 1.0, ("manual",)),),
+    )
+    unknown = replace(
+        plan,
+        mappings=plan.mappings + (FieldMapping("ghost", "customer.note", 1.0, ("manual",)),),
+    )
+
+    with pytest.raises(MigrationError, match="multiple sources"):
+        migrate_values({"customer.email": "a@example.test"}, collision)
+    with pytest.raises(MigrationError, match="does not exist"):
+        migrate_values({"customer.email": "a@example.test"}, unknown)

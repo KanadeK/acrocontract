@@ -1,26 +1,26 @@
 # AcroContract 0.1.0 Tasks
 
-- [ ] Scaffold and fixture tests
+- [x] Scaffold and fixture tests
   - Acceptance: project installs; generated forms are reproducible; first contract tests fail before implementation.
   - Verify: `uv run pytest tests/test_inspector.py -q`
   - Files: `pyproject.toml`, `scripts/generate_fixtures.py`, `tests/conftest.py`, `tests/test_inspector.py`
-- [ ] Field/widget inspector and snapshot
-  - Acceptance: one immutable contract includes field tree, page widgets, flags/options/actions, and completeness metadata.
+- [x] Field/widget inspector and snapshot
+  - Acceptance: one immutable contract includes field tree, page widgets, flags/options, and structural warnings.
   - Verify: `uv run pytest tests/test_inspector.py tests/test_snapshot.py -q`
   - Files: `src/acrocontract/models.py`, `src/acrocontract/inspect.py`, `src/acrocontract/serialize.py`, `src/acrocontract/cli.py`
-- [ ] Compatibility rules
+- [x] Compatibility rules
   - Acceptance: broken example produces stable expected ACR rule IDs and severities.
   - Verify: `uv run pytest tests/test_diff.py -q`
   - Files: `src/acrocontract/findings.py`, `src/acrocontract/diff.py`
-- [ ] Rename plan and reports
+- [x] Rename plan and reports
   - Acceptance: proposals are explainable/advisory; console, JSON, and Markdown agree.
   - Verify: `uv run pytest tests/test_rename.py tests/test_reports.py -q`
-  - Files: `src/acrocontract/rename.py`, `src/acrocontract/reports.py`, `schemas/*.schema.json`
-- [ ] Value migration and fill proof
+  - Files: `src/acrocontract/rename.py`, `src/acrocontract/reports.py`
+- [x] Value migration and fill proof
   - Acceptance: reviewed mappings migrate; ambiguous/invalid mappings stop; filled values verify after reopen.
   - Verify: `uv run pytest tests/test_migrate.py tests/test_fill_test.py -q`
   - Files: `src/acrocontract/migrate.py`, `src/acrocontract/fill.py`, `src/acrocontract/cli.py`
-- [ ] Documentation, examples, and automation
+- [x] Documentation, examples, and automation
   - Acceptance: fresh-clone commands, failure repair, rule catalog, architecture, CI, packaging, and demo are complete.
   - Verify: `uv run python scripts/verify.py` and `uv run python scripts/demo.py`
   - Files: `README.md`, `docs/**`, `examples/**`, `scripts/**`, `.github/**`

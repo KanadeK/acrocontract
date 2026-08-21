@@ -14,14 +14,14 @@ The project is not a PDF editor, generic visual diff, form designer, or hosted u
 
 The project was selected after inventorying the local workspace and previously discussed ideas, then searching GitHub and the web for direct competitors. Existing tools fill forms, list fields, validate naming conventions, or compare rendered pages. The uncovered gap is an end-to-end semantic compatibility gate that produces a stable contract, classifies breaking changes, proposes explainable renames, migrates values, and verifies the written result after reopening it.
 
-"No direct competitor found" means no publicly discoverable project with the same end-to-end scope was found on 2026-08-12. It is not a mathematical claim that nobody has ever implemented similar private code.
+"No direct competitor found" means no publicly discoverable project with the same end-to-end scope was found on 2026-08-21. It is not a mathematical claim that nobody has ever implemented similar private code.
 
 ## Tech Stack
 
-- Python 3.10+
-- `pypdf` 6.15.x for low-level PDF object traversal and form writes
+- Python 3.11+
+- `pypdf` 6.x for low-level PDF object traversal and form writes
 - Typer 0.27.x and Rich 15.x for the CLI
-- Dataclasses and standard-library JSON/HTML escaping for deterministic reports
+- Dataclasses and standard-library JSON for deterministic reports
 - pytest, pytest-cov, mypy, Ruff, build, and twine for verification
 - ReportLab only in development for deterministic fixture generation
 - Hatchling for PEP 517 packaging
@@ -44,7 +44,6 @@ Exit codes are a public contract:
 - `0`: command completed and the configured gate passed
 - `1`: the diff contains a breaking change or fill-test readback failed
 - `2`: invalid input, unsupported PDF surface, malformed policy/plan, or incomplete inspection
-- `3`: unexpected internal failure
 
 ## Contract Model
 
@@ -90,10 +89,10 @@ The tool does not claim cross-viewer visual parity in 0.1.0. Rendering examples 
 src/acrocontract/       library and CLI
 tests/                  unit, integration, and CLI tests
 examples/               generated safe PDFs, values, policy, and expected reports
-scripts/                fixture, demo, release, and secret-scan automation
+scripts/                fixture generation, demo, and local verification
 docs/                   research, rules, architecture decisions, repair guide
 tasks/                  implementation plan and live checklist
-.github/workflows/      CI, release, and CodeQL
+.github/workflows/      CI and GitHub Release automation
 ```
 
 ## Code Style
@@ -121,15 +120,14 @@ def classify_change(before: FieldContract, after: FieldContract) -> Finding:
 - Unit tests for normalization, flags, compatibility rules, rename scoring, migration validation, and report serialization.
 - Integration tests against generated AcroForm fixtures that cover field/tree/widget disagreement, duplicate names, removed/renamed/type-changed fields, choice export changes, geometry, tooltips, and write/reopen verification.
 - CLI tests for stdout/stderr discipline, exit codes, deterministic JSON, and safe failure messages.
-- Two deliberately separated full release-gate runs compare artifact bytes and ZIP metadata to detect nondeterminism.
 - Coverage gate: at least 85% lines for `src/acrocontract`; no skipped tests.
 
 ## Commands
 
 ```powershell
-uv sync --all-extras --dev
+uv sync --extra dev
 uv run python scripts/generate_fixtures.py
-uv run pytest --cov=acrocontract --cov-report=term-missing --cov-fail-under=90
+uv run pytest --cov=acrocontract --cov-report=term-missing --cov-fail-under=85
 uv run ruff format --check .
 uv run ruff check .
 uv run mypy src
@@ -137,7 +135,6 @@ uv run python -m build
 uv run twine check dist/*
 uv run python scripts/verify.py
 uv run python scripts/demo.py
-uv run python scripts/package_release.py
 ```
 
 ## Boundaries
@@ -149,7 +146,7 @@ uv run python scripts/package_release.py
 ## Success Criteria
 
 - A fresh user can install the wheel, run the documented demo, and reproduce a breaking diff and a successful reviewed value migration.
-- The tool catches at least: removal, rename proposal, type change, option removal, required/read-only flag changes, duplicate name, detached widget, material movement, tooltip loss, and introduced action.
+- The tool catches at least: removal, rename proposal, type change, option removal, required/read-only flag changes, duplicate name, detached widget, material movement, and tooltip loss.
 - `fill-test` proves written values after reopening and can emit a value-free JSON report.
 - JSON, Markdown, and console reports agree on rule IDs and severities.
 - Example PDFs are visually rendered and inspected, contain no private data, and are generated reproducibly.

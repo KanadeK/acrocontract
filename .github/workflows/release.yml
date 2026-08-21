@@ -1,0 +1,38 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          python-version: "3.13"
+      - run: uv sync --extra dev --locked
+      - run: uv run python scripts/verify.py
+      - name: Package examples
+        run: >-
+          python -m zipfile -c
+          dist/acrocontract-examples-${{ github.ref_name }}.zip
+          examples/customer-intake-v1.pdf
+          examples/customer-intake-v2.pdf
+          examples/customer-intake-v1.contract.json
+          examples/expected-diff.json
+          examples/values-v1.json
+          examples/migration.reviewed.json
+          examples/migrated-values-v2.json
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          gh release create "${{ github.ref_name }}" dist/*
+          --title "AcroContract ${{ github.ref_name }}"
+          --generate-notes

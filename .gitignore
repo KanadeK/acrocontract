@@ -13,4 +13,7 @@ dist/
 tmp/
 output/
 .env
+.env.local
+.env.*.local
 *.pem
+*.key

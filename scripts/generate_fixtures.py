@@ -15,7 +15,7 @@ def generate_examples(output_dir: Path) -> None:
 
 
 def _write_form(path: Path, *, version: int) -> None:
-    pdf = canvas.Canvas(str(path), pagesize=letter)
+    pdf = canvas.Canvas(str(path), pagesize=letter, invariant=1)
     pdf.setTitle(f"AcroContract customer intake v{version}")
     pdf.setFillColor(HexColor("#172033"))
     pdf.rect(0, 720, letter[0], 72, fill=1, stroke=0)

@@ -20,26 +20,35 @@ def migrate_values(values: Mapping[str, object], plan: MigrationPlan) -> dict[st
         raise MigrationError(f"Unknown source field: {unknown[0]}")
 
     mappings: dict[str, str] = {}
+    sources_by_target: dict[str, str] = {}
     for mapping in plan.mappings:
         if mapping.source in mappings:
             raise MigrationError(f"Source field has multiple mappings: {mapping.source}")
+        if mapping.source not in source_fields:
+            raise MigrationError(f"Mapping source does not exist: {mapping.source}")
+        if mapping.target not in target_fields:
+            raise MigrationError(f"Mapping target does not exist: {mapping.target}")
+        if mapping.target in sources_by_target:
+            raise MigrationError(f"Target field has multiple sources: {mapping.target}")
+        source_field = source_fields[mapping.source]
+        target_field = target_fields[mapping.target]
+        if source_field.field_type != target_field.field_type:
+            raise MigrationError(
+                f"Mapping changes field type: {mapping.source} -> {mapping.target}"
+            )
+        if target_field.read_only:
+            raise MigrationError(f"Mapping target is read-only: {mapping.target}")
         mappings[mapping.source] = mapping.target
+        sources_by_target[mapping.target] = mapping.source
 
     migrated: dict[str, object] = {}
     for source in sorted(values):
         if source not in mappings:
             raise MigrationError(f"Source field has no reviewed mapping: {source}")
         target = mappings[source]
-        if target not in target_fields:
-            raise MigrationError(f"Mapping target does not exist: {target}")
         if target in migrated:
             raise MigrationError(f"Multiple values collide at target field: {target}")
-        source_field = source_fields[source]
         target_field = target_fields[target]
-        if source_field.field_type != target_field.field_type:
-            raise MigrationError(f"Mapping changes field type: {source} -> {target}")
-        if target_field.read_only:
-            raise MigrationError(f"Mapping target is read-only: {target}")
         _validate_value(values[source], target_field)
         migrated[target] = values[source]
 
@@ -58,5 +67,9 @@ def _validate_value(value: object, field: PlanField) -> None:
         raise MigrationError(f"Checkbox requires a boolean or export-name string: {field.name}")
     if field.field_type in {"signature", "pushbutton"}:
         raise MigrationError(f"Field type cannot be filled: {field.name}")
-    if field.options and value not in field.options:
-        raise MigrationError(f"Value is not allowed for {field.name}: {value}")
+    if field.field_type == "choice" and field.options and value not in field.options:
+        raise MigrationError(f"Value is not allowed for field: {field.name}")
+    if field.field_type == "radio" and isinstance(value, str):
+        normalized = value if value.startswith("/") else f"/{value}"
+        if normalized not in field.options:
+            raise MigrationError(f"Value is not allowed for field: {field.name}")

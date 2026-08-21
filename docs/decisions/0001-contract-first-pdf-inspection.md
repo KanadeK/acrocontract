@@ -6,7 +6,7 @@ Accepted
 
 ## Date
 
-2026-08-12
+2026-08-21
 
 ## Context
 
@@ -14,7 +14,7 @@ PDF page rendering, the canonical `/AcroForm/Fields` tree, and per-page `/Widget
 
 ## Decision
 
-AcroContract will build a bounded graph from both the field tree and page widgets, then normalize that graph into a deterministic immutable contract. All lint, diff, rename, migration, and receipt behavior consumes the normalized contract rather than live pypdf objects.
+AcroContract builds a normalized view from both the field tree and page widgets, then turns it into a deterministic immutable contract. Diff, rename, migration, and fill verification consume that contract rather than retaining live pypdf objects.
 
 Renames remain proposals until a human-reviewed mapping is supplied. A successful PNG render is supporting evidence only; write verification reopens the PDF and checks both canonical and effective widget values.
 
@@ -36,5 +36,5 @@ Rejected because a plausible heuristic can still route sensitive data to the wro
 
 - Inspection is more complex but findings have object-level evidence.
 - Pure comparison and report code stays deterministic and easy to test.
-- Malformed/cyclic structures require explicit traversal limits and incomplete verdicts.
+- Cyclic parent or field structures fail inspection instead of being followed indefinitely.
 - XFA can be inventoried without falsely claiming semantic support.

@@ -26,7 +26,7 @@ def inspect_pdf(path: Path) -> PdfContract:
 
     acroform_ref = reader.root_object.get("/AcroForm")
     acroform = acroform_ref.get_object() if acroform_ref is not None else None
-    has_acroform = isinstance(acroform, DictionaryObject) and "/Fields" in acroform
+    has_acroform = isinstance(acroform, DictionaryObject) and bool(acroform.get("/Fields"))
     has_xfa = isinstance(acroform, DictionaryObject) and "/XFA" in acroform
     need_appearances = bool(acroform.get("/NeedAppearances", False)) if acroform else False
 
@@ -41,8 +41,8 @@ def inspect_pdf(path: Path) -> PdfContract:
             if not name:
                 unattached_widgets.append(f"page[{page_number}].widget[{annotation_number}]")
                 continue
-            raw_rect = annotation["/Rect"]
-            if len(raw_rect) != 4:
+            raw_rect = annotation.get("/Rect")
+            if not isinstance(raw_rect, ArrayObject) or len(raw_rect) != 4:
                 raise InspectionError(f"Widget rectangle must contain four numbers: {name}")
             rect = (
                 float(raw_rect[0]),
@@ -79,9 +79,11 @@ def inspect_pdf(path: Path) -> PdfContract:
 def _field_contract(
     name: str, field: DictionaryObject, widgets: list[WidgetContract]
 ) -> FieldContract:
-    assert field.indirect_reference is not None
+    if field.indirect_reference is None:
+        raise InspectionError(f"Field must be an indirect PDF object: {name}")
     original = field.indirect_reference.get_object()
-    assert isinstance(original, DictionaryObject)
+    if not isinstance(original, DictionaryObject):
+        raise InspectionError(f"Field must resolve to a PDF dictionary: {name}")
     flags = int(_inherited(original, "/Ff") or 0)
     field_type = str(_inherited(original, "/FT"))
     if field_type == "/Btn":
@@ -98,13 +100,16 @@ def _field_contract(
 
     max_length = _inherited(original, "/MaxLen")
     alternate_name = _inherited(original, "/TU")
+    options = _choice_options(_inherited(original, "/Opt"))
+    if normalized_type == "radio":
+        options = _button_options(original)
     return FieldContract(
         name=name,
         field_type=normalized_type,
         required=bool(flags & FieldDictionaryAttributes.FfBits.Required),
         read_only=bool(flags & FieldDictionaryAttributes.FfBits.ReadOnly),
         max_length=int(max_length) if max_length is not None else None,
-        options=_choice_options(_inherited(original, "/Opt")),
+        options=options,
         alternate_name=str(alternate_name) if alternate_name is not None else None,
         widgets=tuple(sorted(widgets, key=lambda widget: (widget.page, widget.rect))),
     )
@@ -118,9 +123,28 @@ def _choice_options(raw_options: Any) -> tuple[str, ...]:
     )
 
 
+def _button_options(field: DictionaryObject) -> tuple[str, ...]:
+    widgets = [child_ref.get_object() for child_ref in field.get("/Kids", [])] or [field]
+    states: set[str] = set()
+    for widget in widgets:
+        appearance = widget.get("/AP")
+        if appearance is None or "/N" not in appearance.get_object():
+            raise InspectionError("Radio widget has no normal appearance states.")
+        normal = appearance.get_object()["/N"].get_object()
+        if not isinstance(normal, DictionaryObject):
+            raise InspectionError("Radio widget normal appearance must be a state dictionary.")
+        states.update(str(state) for state in normal if str(state) != "/Off")
+    return tuple(sorted(states))
+
+
 def _inherited(field: DictionaryObject, key: str) -> Any:
     current = field
+    visited: set[int] = set()
     while True:
+        marker = id(current)
+        if marker in visited:
+            raise InspectionError("Cycle detected in field parent hierarchy.")
+        visited.add(marker)
         if key in current:
             return current[key]
         parent = current.get("/Parent")
@@ -132,7 +156,12 @@ def _inherited(field: DictionaryObject, key: str) -> Any:
 def _qualified_name(field: DictionaryObject) -> str:
     parts: list[str] = []
     current = field
+    visited: set[int] = set()
     while True:
+        marker = id(current)
+        if marker in visited:
+            raise InspectionError("Cycle detected in field parent hierarchy.")
+        visited.add(marker)
         partial_name = current.get("/T")
         if partial_name:
             parts.append(str(partial_name))
@@ -144,14 +173,21 @@ def _qualified_name(field: DictionaryObject) -> str:
 
 def _field_names(acroform: DictionaryObject) -> list[str]:
     names: list[str] = []
-    pending = list(acroform.get("/Fields", []))
+    pending: list[tuple[Any, frozenset[int]]] = [
+        (field_ref, frozenset()) for field_ref in acroform.get("/Fields", [])
+    ]
     while pending:
-        field = pending.pop().get_object()
+        field_ref, ancestors = pending.pop()
+        field = field_ref.get_object()
+        marker = id(field)
+        if marker in ancestors:
+            raise InspectionError("Cycle detected in AcroForm field tree.")
         name = _qualified_name(field)
         if name:
             names.append(name)
+        child_ancestors = ancestors | {marker}
         for child_ref in field.get("/Kids", []):
             child = child_ref.get_object()
             if child.get("/Subtype") != "/Widget" or child.get("/T"):
-                pending.append(child_ref)
+                pending.append((child_ref, child_ancestors))
     return names

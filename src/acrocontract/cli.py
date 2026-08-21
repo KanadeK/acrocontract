@@ -13,6 +13,7 @@ from .diff import compare_contracts
 from .fill import FillError, FillVerificationError, fill_pdf, fill_report_to_json
 from .inspect import InspectionError, inspect_pdf
 from .migrate import MigrationError, migrate_values
+from .models import PdfContract
 from .plan import PlanError, build_migration_plan, plan_from_json, plan_to_json
 from .reports import diff_to_console, diff_to_json, diff_to_markdown
 from .serialize import contract_to_json
@@ -87,7 +88,7 @@ def migrate_values_command(
     try:
         migration_plan = plan_from_json(_read_text_or_exit(plan_file))
         migrated = migrate_values(values, migration_plan)
-    except (json.JSONDecodeError, PlanError, MigrationError, KeyError, TypeError) as exc:
+    except (json.JSONDecodeError, PlanError, MigrationError) as exc:
         _input_error(f"Invalid migration plan or values: {exc}")
     _write_or_exit(
         output, json.dumps(migrated, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
@@ -121,7 +122,7 @@ def version() -> None:
     typer.echo(f"acrocontract {__version__}")
 
 
-def _inspect_or_exit(path: Path):  # type: ignore[no-untyped-def]
+def _inspect_or_exit(path: Path) -> PdfContract:
     try:
         return inspect_pdf(path)
     except (FileNotFoundError, InspectionError, PdfReadError) as exc:

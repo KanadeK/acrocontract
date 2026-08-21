@@ -2,6 +2,7 @@
 
 import json
 from dataclasses import dataclass
+from typing import cast
 
 from .models import DiffResult, FieldContract, PdfContract
 
@@ -91,25 +92,29 @@ def plan_to_json(plan: MigrationPlan) -> str:
 
 def plan_from_json(text: str) -> MigrationPlan:
     payload = json.loads(text)
+    if not isinstance(payload, dict):
+        raise PlanError("Migration plan must be a JSON object.")
     if payload.get("schemaVersion") != "acrocontract.migration.v1":
         raise PlanError("Unsupported migration-plan schemaVersion.")
     if not isinstance(payload.get("reviewed"), bool):
         raise PlanError("Migration plan 'reviewed' must be true or false.")
+    baseline = payload.get("baseline")
+    candidate = payload.get("candidate")
+    if baseline is not None and not isinstance(baseline, str):
+        raise PlanError("Migration plan 'baseline' must be a string or null.")
+    if candidate is not None and not isinstance(candidate, str):
+        raise PlanError("Migration plan 'candidate' must be a string or null.")
     return MigrationPlan(
-        baseline=payload.get("baseline"),
-        candidate=payload.get("candidate"),
+        baseline=baseline,
+        candidate=candidate,
         reviewed=payload["reviewed"],
-        source_fields=tuple(_field_from_payload(field) for field in payload["sourceFields"]),
-        target_fields=tuple(_field_from_payload(field) for field in payload["targetFields"]),
-        mappings=tuple(
-            FieldMapping(
-                source=mapping["from"],
-                target=mapping["to"],
-                confidence=float(mapping["confidence"]),
-                reasons=tuple(mapping["reasons"]),
-            )
-            for mapping in payload["mappings"]
+        source_fields=tuple(
+            _field_from_payload(field) for field in _object_list(payload, "sourceFields")
         ),
+        target_fields=tuple(
+            _field_from_payload(field) for field in _object_list(payload, "targetFields")
+        ),
+        mappings=tuple(_mapping_from_payload(item) for item in _object_list(payload, "mappings")),
     )
 
 
@@ -134,13 +139,46 @@ def _field_payload(field: PlanField) -> dict[str, object]:
 
 
 def _field_from_payload(payload: dict[str, object]) -> PlanField:
-    raw_options = payload["options"]
-    if not isinstance(raw_options, list):
+    name = payload.get("name")
+    field_type = payload.get("type")
+    required = payload.get("required")
+    read_only = payload.get("readOnly")
+    raw_options = payload.get("options")
+    if not isinstance(name, str) or not isinstance(field_type, str):
+        raise PlanError("Migration plan field name and type must be strings.")
+    if not isinstance(required, bool) or not isinstance(read_only, bool):
+        raise PlanError("Migration plan field flags must be true or false.")
+    if not isinstance(raw_options, list) or not all(
+        isinstance(option, str) for option in raw_options
+    ):
         raise PlanError("Migration plan field 'options' must be an array.")
     return PlanField(
-        name=str(payload["name"]),
-        field_type=str(payload["type"]),
-        required=bool(payload["required"]),
-        read_only=bool(payload["readOnly"]),
-        options=tuple(str(option) for option in raw_options),
+        name=name,
+        field_type=field_type,
+        required=required,
+        read_only=read_only,
+        options=tuple(raw_options),
     )
+
+
+def _mapping_from_payload(payload: dict[str, object]) -> FieldMapping:
+    source = payload.get("from")
+    target = payload.get("to")
+    confidence = payload.get("confidence")
+    reasons = payload.get("reasons")
+    if not isinstance(source, str) or not isinstance(target, str):
+        raise PlanError("Migration mapping 'from' and 'to' must be strings.")
+    if isinstance(confidence, bool) or not isinstance(confidence, (int, float)):
+        raise PlanError("Migration mapping confidence must be a number.")
+    if not 0 <= confidence <= 1:
+        raise PlanError("Migration mapping confidence must be between 0 and 1.")
+    if not isinstance(reasons, list) or not all(isinstance(reason, str) for reason in reasons):
+        raise PlanError("Migration mapping reasons must be an array of strings.")
+    return FieldMapping(source, target, float(confidence), tuple(reasons))
+
+
+def _object_list(payload: dict[str, object], key: str) -> list[dict[str, object]]:
+    value = payload.get(key)
+    if not isinstance(value, list) or not all(isinstance(item, dict) for item in value):
+        raise PlanError(f"Migration plan '{key}' must be an array of objects.")
+    return cast(list[dict[str, object]], value)

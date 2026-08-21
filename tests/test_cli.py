@@ -102,3 +102,22 @@ def test_invalid_external_input_exits_two(pdf_fixtures: Path, tmp_path: Path) ->
 
     assert result.exit_code == 2
     assert "Invalid JSON" in result.stderr
+
+
+def test_non_object_json_exits_two(pdf_fixtures: Path, tmp_path: Path) -> None:
+    values = tmp_path / "values.json"
+    values.write_text("[]", encoding="utf-8")
+
+    result = runner.invoke(
+        app,
+        [
+            "fill-test",
+            str(pdf_fixtures / "customer-intake-v1.pdf"),
+            str(values),
+            "--output",
+            str(tmp_path / "filled.pdf"),
+        ],
+    )
+
+    assert result.exit_code == 2
+    assert "must be an object" in result.stderr

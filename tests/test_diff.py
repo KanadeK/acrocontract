@@ -97,3 +97,21 @@ def test_classifies_material_widget_and_metadata_changes() -> None:
         ("ACR103", Severity.WARNING),
         ("ACR104", Severity.WARNING),
     ]
+
+
+def test_classifies_xfa_replacement_and_added_tooltip() -> None:
+    before = contract(FieldContract(name="email", field_type="text"))
+    after = PdfContract(
+        page_count=1,
+        has_acroform=False,
+        has_xfa=True,
+        need_appearances=False,
+        fields=(FieldContract(name="email", field_type="text", alternate_name="Email address"),),
+    )
+
+    result = compare_contracts(before, after)
+
+    assert [(finding.rule_id, finding.severity) for finding in result.findings] == [
+        ("ACR002", Severity.INFO),
+        ("ACR208", Severity.BREAKING),
+    ]

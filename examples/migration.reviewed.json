@@ -1,0 +1,78 @@
+{
+  "baseline": "customer-intake-v1.pdf",
+  "candidate": "customer-intake-v2.pdf",
+  "mappings": [
+    {
+      "confidence": 0.8574,
+      "from": "customer.email",
+      "reasons": [
+        "Field type is unchanged (text).",
+        "Alternate name is identical.",
+        "First widget position is identical.",
+        "Field-name similarity is 0.59."
+      ],
+      "to": "contact.email"
+    },
+    {
+      "confidence": 1.0,
+      "from": "customer.role",
+      "reasons": [
+        "Field name and type are unchanged."
+      ],
+      "to": "customer.role"
+    }
+  ],
+  "reviewed": true,
+  "schemaVersion": "acrocontract.migration.v1",
+  "sourceFields": [
+    {
+      "name": "customer.email",
+      "options": [],
+      "readOnly": false,
+      "required": false,
+      "type": "text"
+    },
+    {
+      "name": "customer.role",
+      "options": [
+        "buyer",
+        "seller"
+      ],
+      "readOnly": false,
+      "required": false,
+      "type": "choice"
+    },
+    {
+      "name": "terms",
+      "options": [],
+      "readOnly": false,
+      "required": false,
+      "type": "checkbox"
+    }
+  ],
+  "targetFields": [
+    {
+      "name": "contact.email",
+      "options": [],
+      "readOnly": false,
+      "required": true,
+      "type": "text"
+    },
+    {
+      "name": "customer.note",
+      "options": [],
+      "readOnly": false,
+      "required": false,
+      "type": "text"
+    },
+    {
+      "name": "customer.role",
+      "options": [
+        "buyer"
+      ],
+      "readOnly": false,
+      "required": false,
+      "type": "choice"
+    }
+  ]
+}

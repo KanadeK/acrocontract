@@ -17,19 +17,30 @@ def diff_to_markdown(result: DiffResult, before: PdfContract, after: PdfContract
     lines = [
         "# AcroContract compatibility report",
         "",
-        f"Baseline: `{before.source_name or '<contract>'}`  ",
-        f"Candidate: `{after.source_name or '<contract>'}`",
+        f"Baseline: `{_markdown_cell(before.source_name or '<contract>')}`  ",
+        f"Candidate: `{_markdown_cell(after.source_name or '<contract>')}`",
         "",
         "| Rule / severity | Subject | Finding |",
         "|---|---|---|",
     ]
     lines.extend(
-        f"| {finding.rule_id} {finding.severity.value} | `{finding.subject}` | {finding.message} |"
+        f"| {finding.rule_id} {finding.severity.value} | `{_markdown_cell(finding.subject)}` | "
+        f"{_markdown_cell(finding.message)} |"
         for finding in result.findings
     )
     if not result.findings:
         lines.append("| ACR000 info | `$document` | No observable contract changes. |")
     return "\n".join(lines) + "\n"
+
+
+def _markdown_cell(value: str) -> str:
+    return (
+        value.replace("\\", "\\\\")
+        .replace("|", "\\|")
+        .replace("`", "\\`")
+        .replace("\r", " ")
+        .replace("\n", " ")
+    )
 
 
 def diff_to_console(result: DiffResult, before: PdfContract, after: PdfContract) -> str:

@@ -1,0 +1,75 @@
+{
+  "acroForm": true,
+  "duplicateNames": [],
+  "fields": [
+    {
+      "alternateName": "Customer email address",
+      "maxLength": 120,
+      "name": "customer.email",
+      "options": [],
+      "readOnly": false,
+      "required": false,
+      "type": "text",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": [
+            180.0,
+            675.0,
+            520.0,
+            699.0
+          ]
+        }
+      ]
+    },
+    {
+      "alternateName": "Customer role",
+      "maxLength": null,
+      "name": "customer.role",
+      "options": [
+        "buyer",
+        "seller"
+      ],
+      "readOnly": false,
+      "required": false,
+      "type": "choice",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": [
+            180.0,
+            623.0,
+            360.0,
+            647.0
+          ]
+        }
+      ]
+    },
+    {
+      "alternateName": "Accept terms",
+      "maxLength": null,
+      "name": "terms",
+      "options": [],
+      "readOnly": false,
+      "required": false,
+      "type": "checkbox",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": [
+            180.0,
+            573.0,
+            198.0,
+            591.0
+          ]
+        }
+      ]
+    }
+  ],
+  "needAppearances": false,
+  "pageCount": 1,
+  "schemaVersion": "acrocontract.contract.v1",
+  "source": "customer-intake-v1.pdf",
+  "unattachedWidgets": [],
+  "xfa": false
+}

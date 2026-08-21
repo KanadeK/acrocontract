@@ -1,5 +1,8 @@
 from pathlib import Path
 
+from pypdf import PdfReader, PdfWriter
+from pypdf.generic import ArrayObject, NameObject, TextStringObject
+
 from acrocontract.inspect import inspect_pdf
 
 
@@ -33,3 +36,20 @@ def test_extracts_required_renamed_field_from_candidate(pdf_fixtures: Path) -> N
     assert fields["contact.email"].required is True
     assert fields["contact.email"].max_length == 60
     assert fields["customer.role"].options == ("buyer",)
+
+
+def test_recognizes_xfa_with_empty_acroform_fields_as_xfa_only(
+    pdf_fixtures: Path, tmp_path: Path
+) -> None:
+    output = tmp_path / "xfa-only.pdf"
+    writer = PdfWriter()
+    writer.clone_document_from_reader(PdfReader(pdf_fixtures / "customer-intake-v1.pdf"))
+    acroform = writer.root_object["/AcroForm"]
+    acroform[NameObject("/Fields")] = ArrayObject()
+    acroform[NameObject("/XFA")] = TextStringObject("synthetic-xfa")
+    writer.write(output)
+
+    contract = inspect_pdf(output)
+
+    assert contract.has_acroform is False
+    assert contract.has_xfa is True

@@ -1,0 +1,66 @@
+{
+  "baseline": "customer-intake-v1.pdf",
+  "candidate": "customer-intake-v2.pdf",
+  "findings": [
+    {
+      "message": "Field was removed.",
+      "ruleId": "ACR201",
+      "severity": "breaking",
+      "subject": "customer.email"
+    },
+    {
+      "message": "Field was removed.",
+      "ruleId": "ACR201",
+      "severity": "breaking",
+      "subject": "terms"
+    },
+    {
+      "message": "A new required field was added.",
+      "ruleId": "ACR209",
+      "severity": "breaking",
+      "subject": "contact.email"
+    },
+    {
+      "message": "An optional field was added.",
+      "ruleId": "ACR001",
+      "severity": "info",
+      "subject": "customer.note"
+    },
+    {
+      "message": "Likely rename with 0.86 confidence; review before mapping.",
+      "ruleId": "ACR101",
+      "severity": "warning",
+      "subject": "customer.email -> contact.email"
+    },
+    {
+      "message": "Choice export values were removed: seller.",
+      "ruleId": "ACR206",
+      "severity": "breaking",
+      "subject": "customer.role"
+    }
+  ],
+  "renameProposals": [
+    {
+      "confidence": 0.8574,
+      "reasons": [
+        "Field type is unchanged (text).",
+        "Alternate name is identical.",
+        "First widget position is identical.",
+        "Field-name similarity is 0.59."
+      ],
+      "scores": {
+        "label": 1.0,
+        "name": 0.5926,
+        "position": 1.0
+      },
+      "source": "customer.email",
+      "target": "contact.email"
+    }
+  ],
+  "schemaVersion": "acrocontract.diff.v1",
+  "summary": {
+    "breaking": 4,
+    "info": 1,
+    "warning": 1
+  }
+}

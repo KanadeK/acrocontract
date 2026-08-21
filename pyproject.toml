@@ -1,5 +1,5 @@
 [build-system]
-requires = ["hatchling>=1.27,<2"]
+requires = ["hatchling>=1.27,<1.28"]
 build-backend = "hatchling.build"
 
 [project]
@@ -43,7 +43,10 @@ acrocontract = "acrocontract.cli:app"
 
 [project.urls]
 Homepage = "https://github.com/KanadeK/acrocontract"
+Changelog = "https://github.com/KanadeK/acrocontract/blob/main/CHANGELOG.md"
+Documentation = "https://github.com/KanadeK/acrocontract#readme"
 Issues = "https://github.com/KanadeK/acrocontract/issues"
+Source = "https://github.com/KanadeK/acrocontract"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/acrocontract"]
