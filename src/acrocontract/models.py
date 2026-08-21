@@ -43,7 +43,9 @@ class PdfContract:
     has_xfa: bool
     need_appearances: bool
     fields: tuple[FieldContract, ...]
+    source_name: str | None = None
     duplicate_names: tuple[str, ...] = ()
+    unattached_widgets: tuple[str, ...] = ()
     schema_version: str = "acrocontract.contract.v1"
 
 
@@ -58,10 +60,24 @@ class Finding:
 
 
 @dataclass(frozen=True, slots=True)
+class RenameProposal:
+    """Advisory, explainable mapping between a removed and added field."""
+
+    source: str
+    target: str
+    confidence: float
+    name_score: float
+    label_score: float
+    position_score: float
+    reasons: tuple[str, ...]
+
+
+@dataclass(frozen=True, slots=True)
 class DiffResult:
     """Ordered findings for a baseline and candidate contract."""
 
     findings: tuple[Finding, ...]
+    rename_proposals: tuple[RenameProposal, ...] = ()
 
     @property
     def has_breaking_changes(self) -> bool:

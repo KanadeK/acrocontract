@@ -50,11 +50,11 @@ Exit codes are a public contract:
 
 `contract.json` uses `schemaVersion: "acrocontract.contract.v1"` and contains:
 
-- input SHA-256 and page count;
+- source filename and page count;
 - AcroForm/XFA/NeedAppearances metadata;
-- field nodes with fully-qualified name, partial name, type, flags, value/default, alternate/mapping names, max length, choice export/display values, and parent/child relationships;
-- widgets with page, normalized rectangle, annotation flags, tab-order evidence, appearance-state inventory, and their effective field relationship;
-- duplicate names, orphan widgets, detached fields, JavaScript/action inventory, calculation order, and bounded-inspection disclosures.
+- fields with fully-qualified name, type, required/read-only flags, tooltip, maximum length, choice export values, and widgets;
+- widgets with zero-based page number and normalized rectangle;
+- duplicate field names and widgets that cannot be matched to the canonical field tree.
 
 Stable output must never contain absolute input paths, timestamps, object memory addresses, or volatile PDF object numbers as identity. Every list has a defined deterministic sort order.
 
