@@ -10,3 +10,8 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 3
+    ignore:
+      # Hatchling 1.28+ emits Core Metadata 2.5, unsupported by Twine 6.2.
+      - dependency-name: hatchling
+        versions:
+          - ">=1.28"

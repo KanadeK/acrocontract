@@ -68,17 +68,17 @@ fixture generator
 - [x] Task 10: Write README, research report, ADR, rule catalog, examples, contributing, security, and repair guide.
 - [x] Task 11: Add verification/demo scripts, license, changelog, and packaging metadata.
 - [x] Task 12: Add CI and release workflows.
-- [ ] Task 13: Review only the changed code for correctness, security boundaries, and unnecessary complexity.
-- [ ] Task 14: Commit atomic increments and perform author/secret/contributor preflight.
-- [ ] Task 15: Create public GitHub repository, push, verify CI, tag, create Release, and smoke-test its install path.
-- [ ] Task 16: Send Gmail self-notification with verified public links and acceptance commands.
+- [x] Task 13: Review only the changed code for correctness, security boundaries, and unnecessary complexity.
+- [x] Task 14: Commit atomic increments and perform author/secret/contributor preflight.
+- [x] Task 15: Create public GitHub repository, push, verify CI, tag, create Release, and smoke-test its install path.
+- [x] Task 16: Send Gmail self-notification with verified public links and acceptance commands.
 
 ### Checkpoint: Complete
 
-- [ ] All SPEC success criteria are met.
-- [ ] Public release assets match the local manifest.
-- [ ] Online contributor history contains only the intended author.
-- [ ] Gmail notification was sent after publication verification.
+- [x] All SPEC success criteria are met.
+- [x] Public release assets match the local manifest.
+- [x] Online contributor history contains only the intended author.
+- [x] Gmail notification was sent after publication verification.
 
 ## Risks and Mitigations
 

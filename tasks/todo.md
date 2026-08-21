@@ -24,7 +24,7 @@
   - Acceptance: fresh-clone commands, failure repair, rule catalog, architecture, CI, packaging, and demo are complete.
   - Verify: `uv run python scripts/verify.py` and `uv run python scripts/demo.py`
   - Files: `README.md`, `docs/**`, `examples/**`, `scripts/**`, `.github/**`
-- [ ] Review and release
+- [x] Review and release
   - Acceptance: required gates, installable packages, contributor hygiene, public CI/Release, and Gmail are verified.
   - Verify: commands and online checks in `docs/release-checklist.md`
   - Files: release artifacts and GitHub/Gmail state
