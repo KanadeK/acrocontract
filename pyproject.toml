@@ -34,7 +34,7 @@ dev = [
   "pytest>=9,<10",
   "pytest-cov>=7,<8",
   "reportlab>=4.4,<6",
-  "ruff>=0.14,<0.15",
+  "ruff>=0.14,<0.17",
   "twine>=6.2,<7",
 ]
 
